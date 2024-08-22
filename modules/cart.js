@@ -1,4 +1,5 @@
 const Cart = require('../models/cart')
+const Axios = require('axios');
 const mongoose = require('mongoose')
 
 const CartModule = {
@@ -44,7 +45,9 @@ const CartModule = {
                 });
                 return 
             }
-    
+
+            const { data: productInfo } = await Axios.get(`${process.env.PRODUCT_HOST_URI}/api/product/products/${productId}`);
+            const { price = 0 } = productInfo
             let cart = await Cart.findOne({ userId });
 
             // 如果购物车不存在，则创建一个新的购物车
@@ -53,7 +56,8 @@ const CartModule = {
                     userId, 
                     items: [{ 
                         productId, 
-                        quantity 
+                        productPrice: price,
+                        quantity
                     }] 
                 });
             } else {
@@ -65,7 +69,7 @@ const CartModule = {
                     cart.items[itemIndex].quantity += quantity;
                 } else {
                     // 如果产品不存在，添加到购物车
-                    cart.items.push({ productId, quantity });
+                    cart.items.push({ productId, productPrice: price, quantity });
                 }
             }
 
